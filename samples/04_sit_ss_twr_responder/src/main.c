@@ -29,8 +29,9 @@
 #include <port.h>
 #include <shared_defines.h>
 
-#include <sit.h>
-#include <sit_led.h>
+#include <sit/sit.h>
+#include <sit_led/sit_led.h>
+#include <sit/sit_config.h>
 
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
@@ -90,7 +91,7 @@ int main(void) {
 
     uint32_t regStatus = sit_get_device_status();
     LOG_INF("statusreg = 0x%08x",regStatus);
-    k_sleep(K_SECONDS(2)); // Allow Logging to write out put 
+    k_sleep(K_MSEC(2000)); // Allow Logging to write out put 
 
     int frame_sequenz = 0;
     k_yield();
@@ -98,10 +99,10 @@ int main(void) {
 	while (1) {
 		regStatus = sit_get_device_status();
 		LOG_INF("sequence(%u) starting ; statusreg = 0x%08x",frame_sequenz,regStatus);
-		sit_receiveNow(0);
+		sit_receive_at(0);
         msg_header_t rx_poll_msg;
 		msg_id_t msg_id = twr_1_poll;
-		if(sit_checkReceivedIdMsg(msg_id, &rx_poll_msg)){
+		if(sit_check_msg_id(msg_id, &rx_poll_msg)){
 			uint64_t poll_rx_ts = get_rx_timestamp_u64();
             
             uint32_t resp_tx_time = (poll_rx_ts + (POLL_RX_TO_RESP_TX_DLY_UUS * UUS_TO_DWT_TIME)) >> 8;
@@ -112,7 +113,7 @@ int main(void) {
                     ss_twr_2_resp, (uint8_t)(rx_poll_msg.header.sequence + 1),
                     rx_poll_msg.header.dest , rx_poll_msg.header.source,(uint32_t)poll_rx_ts, resp_tx_ts,0
                 };
-            sit_sendAt((uint8_t*)&msg_ss_twr_final_t, sizeof(msg_ss_twr_final_t), resp_tx_time);
+            sit_send_at((uint8_t*)&msg_ss_twr_final_t, sizeof(msg_ss_twr_final_t), resp_tx_time);
 
 		} else {
 			LOG_WRN("Something is wrong");

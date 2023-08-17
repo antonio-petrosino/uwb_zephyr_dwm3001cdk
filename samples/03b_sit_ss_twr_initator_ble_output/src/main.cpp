@@ -35,10 +35,11 @@
 #include <zephyr/bluetooth/uuid.h>
 #include <zephyr/bluetooth/gatt.h>
 
-#include <sit.h>
-#include <sit_led.h>
-#include <ble_init.h>
-#include <ble_device.h>
+#include <sit/sit.h>
+#include <sit/sit_device.h>
+#include <sit_led/sit_led.h>
+#include <sit_ble/ble_init.h>
+#include <sit_ble/ble_device.h>
 
 #define APP_NAME "SIMPLE TWR Initiator BLE EXAMPLE\n"
 
@@ -120,7 +121,8 @@ int main(void) {
         while (is_connected()) {
             regStatus = sit_get_device_status();
             LOG_INF("initiator> sequence(%u) starting ; statusreg = 0x%08x",frame_sequenz,regStatus);
-            sit_setRxAfterTxDelay(POLL_TX_TO_RESP_RX_DLY_UUS, RESP_RX_TIMEOUT_UUS);
+            //sit_setRxAfterTxDelay(POLL_TX_TO_RESP_RX_DLY_UUS, RESP_RX_TIMEOUT_UUS);
+            dwt_setrxaftertxdelay(POLL_TX_TO_RESP_RX_DLY_UUS, RESP_RX_TIMEOUT_UUS);
             msg_header_t twr_poll = {twr_1_poll, frame_sequenz, this_initiator_node_id , responder_node_id,0};
             sit_startPoll((uint8_t*) &twr_poll, (uint16_t)sizeof(twr_poll));
             regStatus = sit_get_device_status();

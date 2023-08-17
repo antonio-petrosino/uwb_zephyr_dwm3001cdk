@@ -36,7 +36,9 @@
 #include <errno.h>
 
 #include <sit/sit.h>
+#include <sit/sit_config.h>
 #include <sit_json/sit_json.h>
+#include <sit_json/sit_json_config.h>
 
 #include <zephyr/kernel.h>
 #include <zephyr/types.h>
@@ -94,9 +96,9 @@ static ssize_t write_int_comand(
 
 	if (*value >= 0 && *value <= 10) {
 		if(*value == 5 ){
-			device_settings.state = measurement;
+			//device_settings.state = measurement;
 		} else if (*value == 0){ 
-			device_settings.state = sleep;
+			//device_settings.state = sleep;
 		}
 	} else {
 		return BT_GATT_ERR(BT_ATT_ERR_VALUE_NOT_ALLOWED);
@@ -117,15 +119,16 @@ static ssize_t write_json_comand(
 
 	memcpy(value, buf, len);
 	value[len+1] = '\0';
-	int ret = json_decode_state_msg(value, &command_str);
+	//int ret = json_decode_state_msg(value, &command_str);
+	int ret = 1;
 	if (ret < 0) {
 		LOG_ERR("JSON Parse Error: %d", ret);
 	} else {
 		if (strcmp(command_str.type, "measurement_msg") == 0 ){
 			if(strcmp(command_str.command, "start")) {
-				reset_sequence();
+				//reset_sequence();
 			}
-			set_device_state(command_str.command);
+			//set_device_state(command_str.command);
 		} else {
 			LOG_ERR("Command: %s", command_str.type);
 		}
@@ -133,6 +136,7 @@ static ssize_t write_json_comand(
 	free(value);
 	return len;
 }
+
 
 static void sit_pos_ccc_cfg_changed(
 		const struct bt_gatt_attr *attr,
@@ -211,7 +215,7 @@ static void bt_ready(void)
 
 	LOG_INF("Bluetooth initialized\n");
 	char *deviceID;
-	get_device_id(&deviceID);
+	//get_device_id(&deviceID);
 	ble_set_device_name(deviceID);
 	ble_device_name();
 	// ble_device_address();

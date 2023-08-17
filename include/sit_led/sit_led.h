@@ -11,6 +11,8 @@ extern "C"
 
 #include <zephyr/drivers/gpio.h>
 
+#include <sit/sit.h>
+
 #define LED0_NODE 	DT_ALIAS(led0)
 #define LED1_NODE 	DT_ALIAS(led1)
 #define LED2_NODE 	DT_ALIAS(led2)
@@ -19,6 +21,8 @@ extern "C"
 void sit_led_init(void);
 void sit_toggle_led(int led_id);
 void sit_set_led(int led_id, int state);
+
+uint8_t sit_init_custom();
 
 #ifdef __cplusplus
 }

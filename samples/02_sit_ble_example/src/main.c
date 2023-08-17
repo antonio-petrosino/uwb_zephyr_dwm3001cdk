@@ -8,12 +8,14 @@
 #include <zephyr/sys/printk.h>
 #include <zephyr/kernel.h>
 
-#include "sit_led.h"
-#include "ble_device.h"
+#include <sit/sit_config.h>
+#include <sit_led/sit_led.h>
+#include <sit_ble/ble_device.h>
+#include <sit_json/sit_json.h>
 
 #define APP_NAME "SIMPLE BLE EXAMPLE\n"
 
-void main(void) {
+void main(void) {	
 	printk(APP_NAME);
 	printk("==================\n");
 
@@ -26,7 +28,7 @@ void main(void) {
 	 */
 	while (1) {
 		k_sleep(K_SECONDS(1));
-
+		
 		if (is_connected()) {
 			/* Battery level simulation */
 			bas_notify();

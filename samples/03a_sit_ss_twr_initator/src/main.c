@@ -25,8 +25,9 @@
 #include <port.h>
 #include <shared_defines.h>
 
-#include <sit.h>
-#include <sit_led.h>
+#include <sit/sit.h>
+#include <sit_led/sit_led.h>
+#include <sit/sit_config.h>
 
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
@@ -101,9 +102,10 @@ int main(void) {
 	while (1) {
         regStatus = sit_get_device_status();
         LOG_INF("initiator> sequence(%u) starting ; statusreg = 0x%08x",frame_sequenz,regStatus);
-        sit_setRxAfterTxDelay(POLL_TX_TO_RESP_RX_DLY_UUS, RESP_RX_TIMEOUT_UUS);
+        //sit_setRxAfterTxDelay(POLL_TX_TO_RESP_RX_DLY_UUS, RESP_RX_TIMEOUT_UUS);
+        sit_set_rx_tx_delay_rx_timeout(POLL_TX_TO_RESP_RX_DLY_UUS, RESP_RX_TIMEOUT_UUS);
         msg_header_t twr_poll = {twr_1_poll, frame_sequenz, this_initiator_node_id , responder_node_id,0};
-        sit_startPoll((uint8_t*) &twr_poll, (uint16_t)sizeof(twr_poll));
+        sit_start_poll((uint8_t*) &twr_poll, (uint16_t)sizeof(twr_poll));
         regStatus = sit_get_device_status();
         LOG_INF("statusreg = 0x%08x",regStatus);
 
@@ -112,7 +114,7 @@ int main(void) {
         msg_ss_twr_final_t rx_final_msg;
 		msg_id_t msg_id = ss_twr_2_resp;
         regStatus = sit_get_device_status();
-        if(sit_checkReceivedIdFinalMsg(msg_id, &rx_final_msg)) {
+        if(sit_check_final_msg_id(msg_id, &rx_final_msg)) {
             uint64_t poll_tx_ts = get_tx_timestamp_u64();
 			uint64_t resp_rx_ts = get_rx_timestamp_u64();
 			

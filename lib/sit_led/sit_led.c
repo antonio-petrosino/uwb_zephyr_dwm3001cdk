@@ -5,6 +5,7 @@
 #include <zephyr/logging/log.h>
 
 #include "sit_led/sit_led.h"
+#include "sit/sit.h"
 
 LOG_MODULE_REGISTER(SIT_LED, LOG_LEVEL_ERR);
 
@@ -96,4 +97,9 @@ void sit_set_led(int led_id, int state) {
         break;
     }
 
+}
+
+uint8_t sit_init_custom()
+{
+	return sit_init();
 }

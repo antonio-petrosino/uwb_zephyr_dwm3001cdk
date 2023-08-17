@@ -57,6 +57,7 @@ typedef enum {
     sleep         ///< sleep state, wait for new informations
 } device_state;
 
+
 typedef struct {
     char deviceID[17];
     device_type type;

@@ -48,6 +48,7 @@
 #include <port.h>
 
 #include <zephyr/logging/log.h>
+//#include "sit.h"
 LOG_MODULE_REGISTER(SIT_Module, LOG_LEVEL_INF);
 
 static uint32_t status_reg = 0;
@@ -80,8 +81,15 @@ uint16_t antennadely = 16385;
 
 uint32_t sequence = 0;
 
+
+void custom_configuration(dwt_config_t _device) {
+
+	LOG_INF("=========== dwt_config_t....doing... =======\n");
+	sit_device_config = _device;	
+}
+
 uint8_t sit_init() {
-	
+	LOG_INF("=========== sit_init....doing... =======\n");
 	device_init();
 	/* Configure SPI rate, for initialize it should not faster than 7 MHz */
 	port_set_dw_ic_spi_slowrate();
@@ -132,8 +140,9 @@ uint8_t sit_init() {
 	return 1;
 }
 
-void sit_sstwr_initiator(uint8_t initiator_node_id, uint8_t responder_node_id) {
-	sit_set_rx_tx_delay_rx_timeout(POLL_TX_TO_RESP_RX_DLY_UUS, RESP_RX_TIMEOUT_UUS);
+void sit_sstwr_initiator(uint8_t initiator_node_id, uint8_t responder_node_id)
+{
+    sit_set_rx_tx_delay_rx_timeout(POLL_TX_TO_RESP_RX_DLY_UUS, RESP_RX_TIMEOUT_UUS);
 	msg_header_t twr_poll = {twr_1_poll, (uint8_t)sequence, initiator_node_id , responder_node_id, 0};
 	sit_start_poll((uint8_t*) &twr_poll, (uint16_t)sizeof(twr_poll));
 
@@ -155,6 +164,9 @@ void sit_sstwr_initiator(uint8_t initiator_node_id, uint8_t responder_node_id) {
 		float tof =  ((rtd_init - rtd_resp * 
 				(1 - clockOffsetRatio)) / 2.0) * DWT_TIME_UNITS;
 		
+		
+		tof = tof +0.3;
+
 		float distance = tof * SPEED_OF_LIGHT;
 
 		LOG_INF("TX Power: 0x%08x", (int32_t) 0xfe);

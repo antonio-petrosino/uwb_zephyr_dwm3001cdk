@@ -55,6 +55,22 @@ extern "C"
 ****************************************************************************/
 uint8_t sit_ble_init(void);
 
+static ssize_t write_int_comand(struct bt_conn *conn,
+		const struct bt_gatt_attr *attr,
+		const void *buf,
+		uint16_t len,
+		uint16_t offset,
+		uint8_t flags
+); 
+	
+static ssize_t write_json_comand(
+		struct bt_conn *conn,
+		const struct bt_gatt_attr *attr,
+		const void *buf,
+		uint16_t len,
+		uint16_t offset,
+		uint8_t flags
+);
 
 bool is_connected(void);
 void ble_sit_notify(json_distance_msg_t* json_data, size_t data_len);
