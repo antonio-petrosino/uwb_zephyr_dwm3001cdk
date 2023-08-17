@@ -60,17 +60,21 @@ static dwt_config_t config = {
 
 void main(void)
 {
-	printk("Welcome to the Custom Firmware Test\n");
-	LOG_INF("SS TWR INIT v1.0\n");
+	// toRead = screen /dev/ttyACM0 115200
+	// toCheck = mesg | grep tty
+	//printk("Welcome to the Custom Firmware Test\n");
+	LOG_INF("Welcome to the Custom Firmware Test\n");
+	LOG_INF("SS TWR INIT or RESP v1.0\n");
 
 	custom_configuration(config);
-
 	initialization();
+	
+	init_device_id();
 	char *deviceID;
 	get_device_id(&deviceID);
 	
-	LOG_INF("=========== deviceID: %s =======\n", deviceID);
-
+	LOG_INF("=========== deviceID: %s =======\n", &deviceID);
+	k_sleep(K_MSEC(3000));
 	//int init_ok = sit_init(&config, TX_ANT_DLY, RX_ANT_DLY);
 
 	//sit_led_init();
@@ -104,23 +108,30 @@ void main(void)
     uint32_t regStatus = sit_get_device_status();
     LOG_INF("statusreg = 0x%08x",regStatus);
 
-	int count = 0;
-
+	int count = 0;	
+	float average_meausure = 0;
 	int mod = 1;
 	while (1) {
 		if(mod == 1){
+		gpio_pin_configure_dt(&led0, GPIO_OUTPUT_ACTIVE);	
 		count++;
-		LOG_INF("=========== ciclo %d =======\n", count);
-		LOG_INF("leds> hello %d",count);
+
+		if((count % 10) == 1){
+			average_meausure =0;
+		}
+
+		if(count==1){LOG_INF("=========== Cycle number: %d =======\n", count);}
+		//LOG_INF("leds> hello %d",count);
 		
         regStatus = sit_get_device_status();
-        LOG_INF("initiator> sequence(%u) starting ; statusreg = 0x%08x",frame_sequenz,regStatus);
+        if(count==1){LOG_INF("initiator> sequence(%u) starting ; statusreg = 0x%08x \n",frame_sequenz,regStatus);}
         //sit_setRxAfterTxDelay(POLL_TX_TO_RESP_RX_DLY_UUS, RESP_RX_TIMEOUT_UUS);
         sit_set_rx_tx_delay_rx_timeout(POLL_TX_TO_RESP_RX_DLY_UUS, RESP_RX_TIMEOUT_UUS);
         msg_header_t twr_poll = {twr_1_poll, frame_sequenz, this_initiator_node_id , responder_node_id,0};
         sit_start_poll((uint8_t*) &twr_poll, (uint16_t)sizeof(twr_poll));
         regStatus = sit_get_device_status();
-        LOG_INF("statusreg = 0x%08x",regStatus);
+
+        if(count==1){LOG_INF("statusreg = 0x%08x \n",regStatus);}
 
         frame_sequenz++;
 
@@ -142,20 +153,31 @@ void main(void)
 
             float tof =  ((rtd_init - rtd_resp * 
                        (1 - clockOffsetRatio)) / 2.0) * DWT_TIME_UNITS;
-            float offset_tof = 0.2;
-            float distance = tof * SPEED_OF_LIGHT + offset_tof;
-            printk("initiator -> responder Distance: %3.2lf \n", distance);
+
+            float offset_distance;		
+			offset_distance = 0.0;
+            float distance = tof * SPEED_OF_LIGHT + offset_distance;
+
+			if (average_meausure != 0){
+			average_meausure = (average_meausure + distance) / 2;
+			}
+			else{
+				average_meausure = distance;
+			}			
+            LOG_INF("initiator -> responder Distance: %3.2lf \n", distance);			
+			LOG_INF("initiator -> responder averaged distance: %3.2lf \n", average_meausure);			
 		} else {
-			LOG_WRN("Something is wrong");
+			LOG_WRN("Something is wrong\n");
             dwt_writesysstatuslo(SYS_STATUS_ALL_RX_TO | SYS_STATUS_ALL_RX_ERR);
 		}
         //k_sleep(K_MSEC(RNG_DELAY_MS));
+		gpio_pin_configure_dt(&led0, GPIO_OUTPUT_INACTIVE);
 
 		k_sleep(K_MSEC(3000));
 		}
 		else{
 					regStatus = sit_get_device_status();
-		LOG_INF("sequence(%u) starting ; statusreg = 0x%08x",frame_sequenz,regStatus);
+		if(count==1){LOG_INF("sequence(%u) starting ; statusreg = 0x%08x\n",frame_sequenz,regStatus);}
 		sit_receive_at(0);
         msg_header_t rx_poll_msg;
 		msg_id_t msg_id = twr_1_poll;
@@ -173,11 +195,11 @@ void main(void)
             sit_send_at((uint8_t*)&msg_ss_twr_final_t, sizeof(msg_ss_twr_final_t), resp_tx_time);
 
 		} else {
-			LOG_WRN("Something is wrong");
+			LOG_WRN("Something is wrong\n");
             dwt_writesysstatuslo(SYS_STATUS_ALL_RX_TO | SYS_STATUS_ALL_RX_ERR);
 		}
 		regStatus = sit_get_device_status();
-		LOG_INF("sequence(%u) ending ; statusreg = 0x%08x",frame_sequenz,regStatus);
+		LOG_INF("sequence(%u) ending ; statusreg = 0x%08x\n",frame_sequenz,regStatus);
 		frame_sequenz++;
 		k_sleep(K_MSEC(3000));
 		}
